@@ -4,18 +4,22 @@ convert joystick movements to motor speed driver and show to oled
 <h1>Required</h1>
 
 Wemos Lolin32 OLED
-L298N motor driver
-Joystick analogic 2 axis (JH-D202X-R2_R4-Joystick-5K)
-Single button circuit
-2 dc motors
-12 volts battery
+<ul>
+<li>L298N motor driver</li>
+<li>Joystick analogic 2 axis (JH-D202X-R2_R4-Joystick-5K)</li>
+<li>Single button circuit</li>
+<li>2 dc motors</li>
+<li>12 volts battery</li>
+</ul>
 
 <h1>Joy_Move_Oled Project is used to</h1>
 
--read the analog data from the joystick
--map it to a speed range for the L298N
--write the data to the OLED display
--and simultaneously move the motors according to the displayed values
+<ul>
+<li>read the analog data from the joystick</li>
+<li>map it to a speed range for the L298N</li>
+<li>write the data to the OLED display</li>
+<li>and simultaneously move the motors according to the displayed values</li>
+</ul>
 
 I also implemented the joystick calibration mechanism.
 
