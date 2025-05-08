@@ -23,4 +23,13 @@ Wemos Lolin32 OLED
 
 I also implemented the joystick calibration mechanism.
 
+<h1>It show on oled display</h1>
+<ul>
+  <li>A:&lt;speed-motor-a&gt;</li>
+  <li>B:&lt;speed-motor-B&gt;</li>
+  <li>Direction X:&lt;LEFT/RIGHT&gt;</li>
+  <li>Direction Y:&lt;UP/DOWN&gt;</li>
+</ul>
+
+
 ![esp32__joystick_command_2_motor__schema](https://github.com/user-attachments/assets/127a4f9f-e368-4243-b4a4-f2f379810d47)
