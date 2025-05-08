@@ -53,6 +53,8 @@ class LolinOled
     void shiftUp();
     void writeTextBuf();
     void writeAtRow(char *, int);
+    void drawSemiBarLeft(int, int, int, int);
+    void drawSemiBarRight(int, int, int, int);
   private:
     int cnt_row; //row counter
     int cnt_char; //col counter

@@ -128,11 +128,13 @@ int JoyMove::get_speed_B(){
 char *JoyMove::get_txt_speed_A(){
   txtA[0]='A'; txtA[1]=':';
   strncpy( txtA+2, itoa( joy.CX, bufint, 10 ), 6);
+  oled->drawSemiBarLeft( 7, joy.CX, JOY_MIN, JOY_MAX );
   return txtA;
 }
 char *JoyMove::get_txt_speed_B(){
   txtB[0]='B'; txtB[1]=':';
   strncpy( txtB+2, itoa( joy.CY, bufint, 10 ), 6);
+  oled->drawSemiBarRight( 7, joy.CY, JOY_MIN, JOY_MAX );
   return txtB;
 }
 char *JoyMove::get_txt_direction_X(){
@@ -245,7 +247,7 @@ void JoyMove::outln(String s){
   oled->push(s);
 }
 void JoyMove::ready(){
-  outln("\n\n \n\n \n\n \n\n     READY\n\n");
+  outln("\r\n \r\n \r\n \r\n \r\n \r\n \r\n Joy Move Oled READY!");
 }
 void JoyMove::clear(){
   outln(" \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n");

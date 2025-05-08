@@ -76,6 +76,7 @@ void loop() {
     loled.writeAtRow( joymove.get_txt_speed_B(), 1 );
     loled.writeAtRow( joymove.get_txt_direction_X(), 2 );
     loled.writeAtRow( joymove.get_txt_direction_Y(), 3 );
+  
   }
   joymove.update();
   if (digitalRead(BUTTON_PIN) == LOW)

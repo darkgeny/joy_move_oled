@@ -107,3 +107,14 @@ void LolinOled::writeAtRow(char *txt, int r){
   disp->display();
   strncpy( textbuf[r], txt, cols );
 }
+void LolinOled::drawSemiBarLeft(int row, int vx, int min, int max){
+  int px = map( vx, min, max, 0, SCREEN_WIDTH/2 );
+  disp->fillRect( SCREEN_WIDTH/2-px, row*8, px, 8, WHITE );
+  disp->fillRect( 0, row*8, SCREEN_WIDTH/2-px, 8, BLACK );
+}
+void LolinOled::drawSemiBarRight(int row, int vx, int min, int max){
+  int px = map( vx, min, max, 0, SCREEN_WIDTH/2 );
+  disp->fillRect( SCREEN_WIDTH/2, row*8, px, 8, WHITE );
+  disp->fillRect( SCREEN_WIDTH/2+px, row*8, SCREEN_WIDTH/2-px, 8, BLACK );
+}
+
