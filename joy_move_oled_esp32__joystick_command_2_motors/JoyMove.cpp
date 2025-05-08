@@ -34,21 +34,14 @@ JoyMove::JoyMove(int px, int py, Drive *dr, LolinOled *ol){
   thedrive = dr;
   oled = ol;
   is_started = false;
-  txtA = (char *)malloc(6);
-  txtB = (char *)malloc(6);
+  txtA = (char *)malloc(21);
+  txtB = (char *)malloc(21);
   bufint = (char *)malloc(10);
 }
 void JoyMove::start(){
   begin();
   is_started = true;
 }
-
-/*void JoyMove::delayP(int sec){
-  while(sec > 0){
-    out(".");
-    delay((sec--)*1000);
-  }
-}*/
 void JoyMove::begin(){
   outln("Set default calibration.");
   joy.cX = PRESET_CENTER_X;
@@ -142,6 +135,29 @@ char *JoyMove::get_txt_speed_B(){
   strncpy( txtB+2, itoa( joy.CY, bufint, 10 ), 6);
   return txtB;
 }
+char *JoyMove::get_txt_direction_X(){
+  if( joy.CX <= JOY_MIN ){
+    strcpy( txtA, "Direction X:CENTER" );
+    return txtA;
+  }else strcpy( txtA, "Direction X:" );
+  if( joy.dirX == JOY_DIR_LEFT )
+    strncpy( txtA+12, "LEFT", 5);
+  if( joy.dirX == JOY_DIR_RIGHT )
+    strncpy( txtA+12, "RIGHT", 6);
+  return txtA;
+}
+char *JoyMove::get_txt_direction_Y(){
+  if( joy.CY <= JOY_MIN ){
+    strcpy( txtB, "Direction Y:CENTER" );
+    return txtB;
+  }else strcpy( txtB, "Direction Y:" );
+  if( joy.dirY == JOY_DIR_UP )
+    strncpy( txtB+12, "UP", 3);
+  if( joy.dirY == JOY_DIR_DOWN )
+    strncpy( txtB+12, "DOWN", 5);
+  return txtB;
+}
+
 void JoyMove::read_JOY(){
   float fx = analogRead(joy.pinX)/5;
   float fy = analogRead(joy.pinY)/5;

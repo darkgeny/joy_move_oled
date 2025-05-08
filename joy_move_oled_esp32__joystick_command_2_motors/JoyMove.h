@@ -55,6 +55,8 @@ class JoyMove
     int get_speed_B();
     char *get_txt_speed_A();
     char *get_txt_speed_B();
+    char *get_txt_direction_X();
+    char *get_txt_direction_Y();
     void calibration(int);
     void start();
     void out(String);
