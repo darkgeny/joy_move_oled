@@ -29,6 +29,7 @@ I also implemented the joystick calibration mechanism.
   <li>B:&lt;speed-motor-B&gt;</li>
   <li>Direction X:&lt;LEFT/RIGHT&gt;</li>
   <li>Direction Y:&lt;UP/DOWN&gt;</li>
+  <li>Horizontal symmetrical histogram</li>
 </ul>
 
 <h1>This is the circuit scheme</h1>
