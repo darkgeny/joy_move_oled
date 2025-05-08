@@ -1,4 +1,15 @@
-/* by G.Catanzariti 07/05/2025*/
+/***********************************************************************
+Written by Giacomo Catanzariti darkgeny@gmail.com
+08/05/2025
+License GPL 2.0
+  1. You may copy and distribute verbatim copies of the Program's
+source code as you receive it, in any medium, provided that you
+conspicuously and appropriately publish on each copy an appropriate
+copyright notice and disclaimer of warranty; keep intact all the
+notices that refer to this License and to the absence of any warranty;
+and give any other recipients of the Program a copy of this License
+along with the Program.
+************************************************************************/
 #ifndef JoyMove_h
 #define JoyMove_h
 
