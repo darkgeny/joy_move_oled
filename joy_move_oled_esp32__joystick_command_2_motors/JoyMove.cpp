@@ -56,47 +56,25 @@ void JoyMove::begin(int px, int py){
   ready();
 }
 void JoyMove::calibration(int butpin ){
-  unsigned long timein, timeout;
-  bool pressed = false;
-  timein = millis();
-  timeout = 5000;
   clear();
-  outln("press again to calibrate\n\n");
-  while( timeout > ( millis() - timein )){
-    delay(1000);
-    if(Serial.available())
-      break;
-    if (digitalRead( butpin ) == LOW){
-      pressed = true;
-      break;
-    }
+  outln("\n\n");
+  outln("CALIBRATION");
+  delay(1000);
+  if (digitalRead( butpin ) == LOW){
+    begin();
+    return;
   }
-  if( pressed ){
-    pressed = false;
-    timein = millis();
-    while( timeout > ( millis() - timein )){
-      delay(1000);
-      if (digitalRead( butpin ) == LOW){
-        pressed = true;
-        break;
-      }
-    }
+  if( calibrate() == false ){
+    outln("ERROR.\n\nReset default");
+    delay(2000);
+    begin();
+  }else{
+    outln("SUCCESS!\n\nSaving data");
+    delay(2000);
+    clear();
+    //save_calibration_data();
+    is_started = true;
   }
-  if( pressed ){
-      outln("OK, going calibrate joystick now!");
-      delay(2000);
-      if( !calibrate() ){
-        outln("Error calibration. Set default values.");
-        begin();
-      }else{
-        outln("Calibration success! Saving data...");
-        delay(2000);
-        clear();
-        //save_calibration_data();
-        is_started = true;
-      }
-    }else
-      begin();
 }
 void JoyMove::update(){
   if( ! is_started )
@@ -196,12 +174,13 @@ bool JoyMove::calibrate(){
   float fx,fy;
   int X,Y;
 
-  outln("Center the joystick and wait end center-calibration (2 seconds)");
-  delay(2000);
-  outln("started...");
+  outln("\n\n");
+  delay(3000);
+  outln("DO NOT MOVE JOY !");
+  outln("\n\n");
 
   timenow = millis();
-  while( 2000 > ( millis() - timenow )){
+  while( 3000 > ( millis() - timenow )){
     fx = analogRead(joy.pinX)/5;
     fy = analogRead(joy.pinY)/5;
     X = fx*5;
@@ -211,9 +190,10 @@ bool JoyMove::calibrate(){
   }
   outln("done.");
 
-  outln("Make 2 rotation for 360° the joystick and wait end calibration (3 seconds)");
-  delay(2000);
-  outln("started...");
+  outln("\n\n");
+  delay(3000);
+  outln("ROTATE 360' JOY !");
+  outln("\n\n");
 
   timenow = millis();
   while( 3000 > ( millis() - timenow )){
@@ -227,7 +207,7 @@ bool JoyMove::calibrate(){
     joy.MY = ( Y > joy.MY ? Y : joy.MY );
   }
   outln("done.");
-  if( joy.cX <= 0 || joy.mX == joy.cX || joy.MX == joy.mX || joy.MX == joy.cX )
+  if( joy.mX > (PRESET_MIN+10) || joy.mY > (PRESET_MIN+10) || joy.MX > PRESET_MAX || joy.MX < (PRESET_MAX-100) || joy.MY > PRESET_MAX || joy.MY < (PRESET_MAX-100) )
     return false;
   return true;
 }

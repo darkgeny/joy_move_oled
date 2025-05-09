@@ -33,13 +33,17 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include "Buzzer.h"
+#include "Button.h"
+#include "WebLogging.h"
+
 #define JOYSTICK_X_PIN      0 //so boot button is unusable, to use it change pin to 12,13,14,15
 #define JOYSTICK_Y_PIN      2
 
 #define OLED_SDA_PIN 5
 #define OLED_SCL_PIN 4
 
-#define BUTTON_PIN 16
+#define BUTTON_0_PIN 16
 
 //Define L298N pin mappings (the two jumpers are plugged in)
 const int IN1 = 15;
@@ -55,8 +59,13 @@ LolinOled loled( &display );
 
 JoyMove joymove(JOYSTICK_X_PIN, JOYSTICK_Y_PIN, &drive, &loled );
 
+WebLogging wlog(25); //not used, not implemented
+Buzzer buzzer(26); //not used, not implemented
+const uint8_t MAX_SECOND_PRESS_RESET = 10;
+Button button(BUTTON_0_PIN, &buzzer, MAX_SECOND_PRESS_RESET, &wlog);
+
 void setup() {
-  pinMode(BUTTON_PIN, INPUT);
+  pinMode(BUTTON_0_PIN, INPUT);
   Serial.begin(115200);
   analogSetAttenuation(ADC_11db); // Set the ADC attenuation to 11 dB (up to ~3.3V input)
   Wire.begin( OLED_SDA_PIN, OLED_SCL_PIN ); // Initialize I2C
@@ -79,6 +88,17 @@ void loop() {
   
   }
   joymove.update();
-  if (digitalRead(BUTTON_PIN) == LOW)
-    joymove.calibration( BUTTON_PIN );
+  //check only two gestures on pressing the button
+  //or for multiple check then release control everytime
+  //to make so: delay(1000); if (digitalRead( butpin ) == LOW)return;
+  switch ( button.check_button() ){
+    case  3:  wlog.outln("ONE SECOND");
+              joymove.calibration( BUTTON_0_PIN );
+              break;
+    case 10:  wlog.outln("TEN SECONDS");
+              wlog.outln("Reset!");
+              ESP.restart();
+              break;
+    default:  break;
+  }
 }

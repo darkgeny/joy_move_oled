@@ -44,8 +44,7 @@
 #define PRESET_MIN 0
 #define PRESET_MAX 4095
 
-class JoyMove
-{
+class JoyMove{
   public:
     JoyMove(int, int, Drive *, LolinOled *);
     void begin();
