@@ -37,11 +37,18 @@
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
+#define COLUMNS 21
+#define ROWS 8
 
 // Initialize with the I2C addr 0x3C (for the 128x64)
 // Always reset the display at the beginning
 
 #include "Arduino.h"
+
+//style font family not used because is not useful and unstable
+//enum TEXT_STYLES { Straigh, Bold };
+enum TEXT_COLORS { Normal, Evidence };
+enum TEXT_OVER { STYLE, ERASE };
 
 class LolinOled
 {
@@ -51,16 +58,39 @@ class LolinOled
     void flush();
     void push(String);
     void shiftUp();
-    void writeTextBuf();
+    void writeTextBuf(TEXT_OVER);
+    void get_textbuf(char *,int);
+    void set_textbuf(char *,int);
+    void refresh();
     void writeAtRow(char *, int);
+    void set_rows(int);
+    void set_cols(int);
+    int get_rows();
+    int get_cols();
     void drawSemiBarLeft(int, int, int, int);
     void drawSemiBarRight(int, int, int, int);
+    int cursorUp();
+    int cursorDown();
+    void cursorStop();
+    void cursorOn(int);
+    void cursorBlink();
+    int get_row_selected();
+    void circle_on_text_row(int);
   private:
+    void set_cursor_position(int);
     int cnt_row; //row counter
     int cnt_char; //col counter
     int cols; //maximum cols of oled display
     int rows; //maximum rows of oled display
-    char *textbuf[8]; //two dimensional array of char
+    char *textbuf[ROWS]; //two dimensional array of char
+//    TEXT_STYLES textbuf_style[8],oldstyle;
+    TEXT_COLORS textbuf_color[ROWS],oldcolor;
+    void set_color_textbuf_on_cursor(TEXT_COLORS);
+//    void set_style_textbuf_on_cursor(TEXT_STYLES);
+    void set_color_font(int);
+//    void set_style_font(int);
+    int cursorY;
+    int num_of_items;
     Adafruit_SSD1306 *disp;
 };
 #endif

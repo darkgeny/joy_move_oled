@@ -34,9 +34,10 @@ JoyMove::JoyMove(int px, int py, Drive *dr, LolinOled *ol){
   thedrive = dr;
   oled = ol;
   is_started = false;
-  txtA = (char *)malloc(21);
-  txtB = (char *)malloc(21);
-  bufint = (char *)malloc(10);
+  txtA = (char *)malloc( oled->get_cols() + 1 );
+  txtB = (char *)malloc( oled->get_cols() + 1 );
+  txtC = (char *)malloc( oled->get_cols() + 1 );
+  bufint = (char *)malloc( 12 );
 }
 void JoyMove::start(){
   begin();
@@ -55,50 +56,25 @@ void JoyMove::begin(int px, int py){
   joy.cY = py;
   ready();
 }
-void JoyMove::calibration(int butpin ){
-  unsigned long timein, timeout;
-  bool pressed = false;
-  timein = millis();
-  timeout = 5000;
-  clear();
-  outln("press again to calibrate\n\n");
-  while( timeout > ( millis() - timein )){
-    delay(1000);
-    if(Serial.available())
-      break;
-    if (digitalRead( butpin ) == LOW){
-      pressed = true;
-      break;
-    }
+void JoyMove::calibration(){
+  if( calibrate() == false ){
+    outln("ERROR.\n\nReset default");
+    delay(2000);
+    begin();
+  }else{
+    outln("SUCCESS!\n\nSaving data");
+    delay(2000);
+    clear();
+    //save_calibration_data();
+    is_started = true;
   }
-  if( pressed ){
-    pressed = false;
-    timein = millis();
-    while( timeout > ( millis() - timein )){
-      delay(1000);
-      if (digitalRead( butpin ) == LOW){
-        pressed = true;
-        break;
-      }
-    }
-  }
-  if( pressed ){
-      outln("OK, going calibrate joystick now!");
-      delay(2000);
-      if( !calibrate() ){
-        outln("Error calibration. Set default values.");
-        begin();
-      }else{
-        outln("Calibration success! Saving data...");
-        delay(2000);
-        clear();
-        //save_calibration_data();
-        is_started = true;
-      }
-    }else
-      begin();
 }
 void JoyMove::update(){
+  if( ! is_started )
+    return;
+  read_joy_calibrate_MIN_to_MAX();
+}
+void JoyMove::update_moving(){
   if( ! is_started )
     return;
   read_joy_calibrate_MIN_to_MAX();
@@ -106,16 +82,16 @@ void JoyMove::update(){
   if( joy.CX <= JOY_MIN && joy.CY <= JOY_MIN )
     thedrive->stopMoving();
   else{
-    if( joy.dirX == JOY_DIR_LEFT )
-      if( joy.dirY == JOY_DIR_UP )
+    if( joy.dirX == JOY_LEFT )
+      if( joy.dirY == JOY_UP )
         thedrive->moveForward( joy.CX, joy.CY );
-      if( joy.dirY == JOY_DIR_DOWN )
+      if( joy.dirY == JOY_DOWN )
         thedrive->moveBackward ( joy.CX, joy.CY );
 
-    if( joy.dirX == JOY_DIR_RIGHT )
-      if( joy.dirY == JOY_DIR_UP )
+    if( joy.dirX == JOY_RIGHT )
+      if( joy.dirY == JOY_UP )
         thedrive->moveForward( joy.CX, joy.CY );
-      if( joy.dirY == JOY_DIR_DOWN )
+      if( joy.dirY == JOY_DOWN )
         thedrive->moveBackward ( joy.CX, joy.CY );
   }
 }
@@ -138,28 +114,43 @@ char *JoyMove::get_txt_speed_B(){
   return txtB;
 }
 char *JoyMove::get_txt_direction_X(){
-  if( joy.CX <= JOY_MIN ){
+  if( joy.centeredX ){
     strcpy( txtA, "Direction X:CENTER" );
     return txtA;
   }else strcpy( txtA, "Direction X:" );
-  if( joy.dirX == JOY_DIR_LEFT )
+  if( joy.dirX == JOY_LEFT )
     strncpy( txtA+12, "LEFT", 5);
-  if( joy.dirX == JOY_DIR_RIGHT )
+  if( joy.dirX == JOY_RIGHT )
     strncpy( txtA+12, "RIGHT", 6);
   return txtA;
 }
 char *JoyMove::get_txt_direction_Y(){
-  if( joy.CY <= JOY_MIN ){
+  if( joy.centeredY ){
     strcpy( txtB, "Direction Y:CENTER" );
     return txtB;
   }else strcpy( txtB, "Direction Y:" );
-  if( joy.dirY == JOY_DIR_UP )
+  if( joy.dirY == JOY_UP )
     strncpy( txtB+12, "UP", 3);
-  if( joy.dirY == JOY_DIR_DOWN )
+  if( joy.dirY == JOY_DOWN )
     strncpy( txtB+12, "DOWN", 5);
   return txtB;
 }
-
+char *JoyMove::get_txt_direction_XY(){
+  if( joy.centeredX || joy.centeredY  ){
+    strcpy( txtC, "straight..." );
+    return "";
+  }else strcpy( txtC, "Obliquity:" );
+  if( joy.dirXY == JOY_LEFTUP )
+    strncpy( txtC+10, "LEFT-UP    ", 11);
+  if( joy.dirXY == JOY_LEFTDOWN )
+    strncpy( txtC+10, "LEFT-DOWN  ", 11);
+  if( joy.dirXY == JOY_RIGHTUP )
+    strncpy( txtC+10, "RIGHT-UP   ", 11);
+  if( joy.dirXY == JOY_RIGHTDOWN )
+    strncpy( txtC+10, "RIGHT-DOWN ", 11);
+  txtC[ oled->get_cols() + 1 ]='\0';
+  return txtC;
+}
 void JoyMove::read_JOY(){
   float fx = analogRead(joy.pinX)/5;
   float fy = analogRead(joy.pinY)/5;
@@ -175,20 +166,28 @@ void JoyMove::read_JOY(){
   joy.X = ( X > roundX_A && X < roundX_B ) ? joy.cX : X;
   joy.Y = ( Y > roundY_A && Y < roundY_B ) ? joy.cY : Y;
 
-  joy.dirX = ( joy.X <= joy.cX ) ? JOY_DIR_RIGHT : joy.dirX;
-  joy.dirX = ( joy.X > joy.cX ) ? JOY_DIR_LEFT : joy.dirX;
-  joy.dirY = ( joy.Y <= joy.cY ) ? JOY_DIR_DOWN : joy.dirY;
-  joy.dirY = ( joy.Y > joy.cY ) ? JOY_DIR_UP : joy.dirY;
+  joy.dirX = ( joy.X < joy.cX  ) ? JOY_RIGHT : joy.dirX;
+  joy.dirX = ( joy.X > joy.cX   ) ? JOY_LEFT  : joy.dirX;
+  joy.dirY = ( joy.Y < joy.cY  ) ? JOY_DOWN  : joy.dirY;
+  joy.dirY = ( joy.Y > joy.cY   ) ? JOY_UP    : joy.dirY;
+
+  joy.dirXY = ( joy.dirX == JOY_LEFT  && joy.dirY == JOY_UP   ) ? JOY_LEFTUP : joy.dirXY;
+  joy.dirXY = ( joy.dirX == JOY_RIGHT && joy.dirY == JOY_UP   ) ? JOY_RIGHTUP : joy.dirXY;
+  joy.dirXY = ( joy.dirX == JOY_LEFT  && joy.dirY == JOY_DOWN ) ? JOY_LEFTDOWN : joy.dirXY;
+  joy.dirXY = ( joy.dirX == JOY_RIGHT && joy.dirY == JOY_DOWN ) ? JOY_RIGHTDOWN : joy.dirXY;
+
+  joy.centeredX = ( joy.CX <= JOY_MIN ) ? true : false;
+  joy.centeredY = ( joy.CY <= JOY_MIN ) ? true : false;
 }
 void JoyMove::read_joy_calibrate_MIN_to_MAX(){
   read_JOY();
-  if( joy.dirX == JOY_DIR_RIGHT )
+  if( joy.dirX == JOY_RIGHT )
     joy.CX = map( joy.X, joy.mX, joy.cX, JOY_MAX, JOY_MIN );
-  if( joy.dirX == JOY_DIR_LEFT )
+  if( joy.dirX == JOY_LEFT )
     joy.CX = map( joy.X, joy.cX, joy.MX, JOY_MIN, JOY_MAX );
-  if( joy.dirY == JOY_DIR_DOWN )
+  if( joy.dirY == JOY_DOWN )
     joy.CY = map( joy.Y, joy.mY, joy.cY, JOY_MAX, JOY_MIN );
-  if( joy.dirY == JOY_DIR_UP )
+  if( joy.dirY == JOY_UP )
     joy.CY = map( joy.Y, joy.cY, joy.MY, JOY_MIN, JOY_MAX );
 }
 bool JoyMove::calibrate(){
@@ -196,12 +195,13 @@ bool JoyMove::calibrate(){
   float fx,fy;
   int X,Y;
 
-  outln("Center the joystick and wait end center-calibration (2 seconds)");
-  delay(2000);
-  outln("started...");
+  outln("\n\n");
+  delay(3000);
+  outln("DO NOT MOVE JOY !");
+  outln("\n\n");
 
   timenow = millis();
-  while( 2000 > ( millis() - timenow )){
+  while( 3000 > ( millis() - timenow )){
     fx = analogRead(joy.pinX)/5;
     fy = analogRead(joy.pinY)/5;
     X = fx*5;
@@ -211,9 +211,10 @@ bool JoyMove::calibrate(){
   }
   outln("done.");
 
-  outln("Make 2 rotation for 360° the joystick and wait end calibration (3 seconds)");
-  delay(2000);
-  outln("started...");
+  outln("\n\n");
+  delay(3000);
+  outln("ROTATE 360' JOY !");
+  outln("\n\n");
 
   timenow = millis();
   while( 3000 > ( millis() - timenow )){
@@ -227,7 +228,7 @@ bool JoyMove::calibrate(){
     joy.MY = ( Y > joy.MY ? Y : joy.MY );
   }
   outln("done.");
-  if( joy.cX <= 0 || joy.mX == joy.cX || joy.MX == joy.mX || joy.MX == joy.cX )
+  if( joy.mX > (PRESET_MIN+10) || joy.mY > (PRESET_MIN+10) || joy.MX > PRESET_MAX || joy.MX < (PRESET_MAX-100) || joy.MY > PRESET_MAX || joy.MY < (PRESET_MAX-100) )
     return false;
   return true;
 }
@@ -246,9 +247,29 @@ void JoyMove::outln(String s){
   //Serial.println(s);
   oled->push(s);
 }
-void JoyMove::ready(){
+bool JoyMove::ready(){
   outln("\r\n \r\n \r\n \r\n \r\n \r\n \r\n Joy Move Oled READY!");
+  return true;
 }
 void JoyMove::clear(){
   outln(" \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n");
+}
+JOY JoyMove::get_joy(){
+  return joy;
+}
+void JoyMove::reset_joy_dirX(){
+  joy.dirX = JOY_CENTER;
+}
+void JoyMove::reset_joy_dirY(){
+  joy.dirY = JOY_CENTER;
+}
+bool JoyMove::is_centeredX(){
+  if( joy.centeredX )
+    reset_joy_dirX();
+  return joy.centeredX;
+}
+bool JoyMove::is_centeredY(){
+  if( joy.centeredY )
+    reset_joy_dirY();
+  return joy.centeredY;
 }

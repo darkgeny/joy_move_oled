@@ -31,11 +31,16 @@
 #include "Drive.h"
 #include "LolinOled.h"
 
-#define JOY_APPROX_ROUND_CENTER_JOYSTICK 100
-#define JOY_DIR_LEFT 0
-#define JOY_DIR_RIGHT 1
-#define JOY_DIR_UP 2
-#define JOY_DIR_DOWN 3
+#define JOY_APPROX_ROUND_CENTER_JOYSTICK 300
+#define JOY_CENTER 0
+#define JOY_LEFT 1
+#define JOY_RIGHT 2
+#define JOY_UP 3
+#define JOY_DOWN 4
+#define JOY_LEFTUP 5
+#define JOY_LEFTDOWN 6
+#define JOY_RIGHTUP 7
+#define JOY_RIGHTDOWN 8
 #define JOY_MIN 300
 #define JOY_MAX 1023
 
@@ -44,38 +49,47 @@
 #define PRESET_MIN 0
 #define PRESET_MAX 4095
 
-class JoyMove
-{
+struct JOYSTICK_DATA{
+  int pinX,pinY; //pins
+  int X,Y; //direct values
+  int cX,cY; //centered
+  int mX,mY; //minimum
+  int MX,MY; //maximum
+  int dirX,dirY; //directions
+  int dirXY;//other directions
+  bool centeredX, centeredY;//if centered anyone the it's true
+  int CX,CY; //calibrated
+};
+typedef struct JOYSTICK_DATA JOY;
+
+class JoyMove{
   public:
     JoyMove(int, int, Drive *, LolinOled *);
     void begin();
     void begin(int, int);
     void update();
+    void update_moving();
     int get_speed_A();
     int get_speed_B();
     char *get_txt_speed_A();
     char *get_txt_speed_B();
     char *get_txt_direction_X();
     char *get_txt_direction_Y();
-    void calibration(int);
+    char *get_txt_direction_XY();
+    void calibration();
     void start();
     void out(String);
     void outln(String);
-    void ready();
+    bool ready();
     void clear();
+    JOY get_joy();
+    bool is_centeredX();
+    bool is_centeredY();
   private:
+    void reset_joy_dirX();
+    void reset_joy_dirY();
     Drive *thedrive;
     bool calibrate();
-    struct JOYSTICK_DATA{
-      int pinX,pinY; //pins
-      int X,Y; //direct values
-      int cX,cY; //centered
-      int mX,mY; //minimum
-      int MX,MY; //maximum
-      int dirX,dirY; //directions
-      int CX,CY; //calibrated
-    };
-    typedef struct JOYSTICK_DATA JOY;
     JOY joy;
     void print_stats(int, int );
     void read_joy_calibrate_MIN_to_MAX();
@@ -85,6 +99,6 @@ class JoyMove
     void load_calibration_data();
     bool is_started;
     LolinOled *oled;
-    char *txtA, *txtB, *bufint;
+    char *txtA, *txtB, *txtC, *bufint;
 };
 #endif
